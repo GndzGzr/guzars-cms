@@ -1,25 +1,56 @@
-import { Folder, FileText, Search, Settings, Hash, Network } from "lucide-react";
+import { FileText, Search, Settings, Hash, Network, Lock } from "lucide-react";
 import Link from "next/link";
 import { SearchModal } from "./SearchModal";
+import { FolderGroup } from "./FolderGroup";
+import { fetchAPI } from "@/lib/api";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
-export default function Sidebar() {
+async function getNotes() {
+  try {
+    const [prmRes, refRes, fltRes] = await Promise.all([
+      fetchAPI('/api/notes/?note_type=PRM'),
+      fetchAPI('/api/notes/?note_type=REF'),
+      fetchAPI('/api/notes/?note_type=FLT')
+    ]);
+    
+    return {
+      prm: Array.isArray(prmRes) ? prmRes : (prmRes?.results || []),
+      ref: Array.isArray(refRes) ? refRes : (refRes?.results || []),
+      flt: Array.isArray(fltRes) ? fltRes : (fltRes?.results || [])
+    };
+  } catch (err) {
+    console.error("Sidebar note fetching failed - unauthorized or API down");
+    return null;
+  }
+}
+
+export default async function Sidebar() {
+  const session = await getServerSession(authOptions);
+  
+  let notes = null;
+  if (session) {
+    notes = await getNotes();
+  }
+
   return (
     <aside className="w-64 bg-zinc-50 dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800 flex flex-col h-full overflow-hidden transition-all duration-300">
-      <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center gap-2">
-        <div className="w-6 h-6 rounded bg-black dark:bg-white flex items-center justify-center">
-          <span className="text-white dark:text-black font-bold text-xs">G</span>
+      <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex flex-col gap-2">
+        <div className="flex items-center gap-2">
+          <div className="w-6 h-6 rounded bg-black dark:bg-white flex items-center justify-center">
+            <span className="text-white dark:text-black font-bold text-xs">G</span>
+          </div>
+          <span className="font-semibold text-sm tracking-tight text-zinc-900 dark:text-zinc-100">Guzars CMS</span>
         </div>
-        <span className="font-semibold text-sm tracking-tight text-zinc-900 dark:text-zinc-100">Guzars CMS</span>
       </div>
 
       <div className="p-3">
         <SearchModal />
       </div>
 
-      <div className="flex-grow overflow-y-auto px-3 py-2 space-y-4 text-sm">
-        <div>
-          <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2 px-3">Explore</h3>
-          <ul className="space-y-0.5">
+      <div className="flex-grow overflow-y-auto px-1 py-2 space-y-4 text-sm">
+        <div className="px-2">
+          <ul className="space-y-0.5 mb-4">
             <li>
               <Link href="/notes" className="flex items-center gap-2 px-3 py-1.5 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-md transition-colors">
                 <FileText size={16} className="text-zinc-400" />
@@ -35,23 +66,24 @@ export default function Sidebar() {
           </ul>
         </div>
         
-        <div>
-          <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2 px-3">Recent Notes</h3>
-          <ul className="space-y-0.5">
-            <li>
-              <Link href="#" className="flex items-center gap-2 px-3 py-1.5 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900 bg-zinc-100 dark:bg-zinc-900 rounded-md transition-colors">
-                <FileText size={16} className="text-zinc-400" />
-                <span className="truncate">Next.js App Router Architecture</span>
-              </Link>
-            </li>
-            <li>
-              <Link href="#" className="flex items-center gap-2 px-3 py-1.5 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-md transition-colors">
-                <FileText size={16} className="text-zinc-400" />
-                <span>Minimal UI Design</span>
-              </Link>
-            </li>
-          </ul>
-        </div>
+        {session ? (
+          notes ? (
+            <div className="px-2 space-y-1">
+              <FolderGroup title="Permanent Notes" notes={notes.prm} defaultOpen={true} />
+              <FolderGroup title="Reference Notes" notes={notes.ref} />
+              <FolderGroup title="Fleeting Notes" notes={notes.flt} />
+            </div>
+          ) : (
+            <div className="px-4 py-2 text-xs text-red-500 dark:text-red-400 italic">
+              Failed to connect to vault.
+            </div>
+          )
+        ) : (
+          <div className="px-4 py-8 flex flex-col items-center justify-center text-zinc-400 dark:text-zinc-600 text-center space-y-3">
+            <Lock size={24} className="opacity-50" />
+            <p className="text-xs">Log in to view the vault folder structure.</p>
+          </div>
+        )}
       </div>
 
       <div className="p-3 border-t border-zinc-200 dark:border-zinc-800">
