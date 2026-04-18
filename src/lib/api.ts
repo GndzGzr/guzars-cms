@@ -1,5 +1,7 @@
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+
 export const API_URL = process.env.NEXT_PUBLIC_API_URL;
-export const TOKEN = process.env.OBSIDIAN_API_TOKEN;
 
 export async function fetchAPI(endpoint: string, options: RequestInit = {}) {
   const url = `${API_URL}${endpoint}`;
@@ -8,8 +10,20 @@ export async function fetchAPI(endpoint: string, options: RequestInit = {}) {
     'Content-Type': 'application/json',
   });
 
-  if (TOKEN) {
-    headers.append('Authorization', `Token ${TOKEN}`);
+  // Automatically embed NextAuth Django Superuser token in SSR if available
+  try {
+    const session = await getServerSession(authOptions);
+    if (session?.accessToken) {
+      headers.append('Authorization', `Token ${session.accessToken}`);
+    } else if (process.env.OBSIDIAN_API_TOKEN) {
+      // Fallback for SSG build time or strictly environment defined auth
+      headers.append('Authorization', `Token ${process.env.OBSIDIAN_API_TOKEN}`);
+    }
+  } catch(e) {
+      // if called from client side, drop back to process.env.
+     if (process.env.OBSIDIAN_API_TOKEN) {
+       headers.append('Authorization', `Token ${process.env.OBSIDIAN_API_TOKEN}`);
+     }
   }
 
   const res = await fetch(url, {
