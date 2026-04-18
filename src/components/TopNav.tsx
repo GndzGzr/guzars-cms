@@ -1,6 +1,7 @@
 import { Menu, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import Link from "next/link";
 import { ThemeToggle } from "./ThemeToggle";
+import { AuthButton } from "./AuthButton";
 
 export default function TopNav() {
   return (
@@ -24,6 +25,8 @@ export default function TopNav() {
 
       <div className="flex items-center gap-4">
         <ThemeToggle />
+        <div className="w-px h-6 bg-zinc-200 dark:bg-zinc-800 hidden sm:block"></div>
+        <AuthButton />
       </div>
     </header>
   );
