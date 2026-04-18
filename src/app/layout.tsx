@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Sidebar from "@/components/Sidebar";
 import TopNav from "@/components/TopNav";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,17 +29,25 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
       <body className="h-full flex text-zinc-900 bg-white dark:bg-zinc-950 dark:text-zinc-50 selection:bg-zinc-200 selection:text-zinc-900 dark:selection:bg-zinc-800 dark:selection:text-zinc-50">
-        <div className="flex w-full h-full overflow-hidden">
-          <Sidebar />
-          <main className="flex-grow flex flex-col h-full overflow-hidden relative">
-            <TopNav />
-            <div className="flex-grow overflow-y-auto w-full">
-              {children}
-            </div>
-          </main>
-        </div>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <div className="flex w-full h-full overflow-hidden">
+            <Sidebar />
+            <main className="flex-grow flex flex-col h-full overflow-hidden relative">
+              <TopNav />
+              <div className="flex-grow overflow-y-auto w-full">
+                {children}
+              </div>
+            </main>
+          </div>
+        </ThemeProvider>
       </body>
     </html>
   );

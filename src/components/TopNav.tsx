@@ -1,5 +1,6 @@
 import { Menu, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import Link from "next/link";
+import { ThemeToggle } from "./ThemeToggle";
 
 export default function TopNav() {
   return (
@@ -17,14 +18,12 @@ export default function TopNav() {
             Home
           </Link>
           <span className="mx-2 text-zinc-300 dark:text-zinc-700">/</span>
-          <span className="text-zinc-900 dark:text-zinc-100">Engineering</span>
-          <span className="mx-2 text-zinc-300 dark:text-zinc-700">/</span>
-          <span className="text-zinc-900 dark:text-zinc-100">Next.js App Router Architecture</span>
+          <span className="text-zinc-900 dark:text-zinc-100">Digital Garden</span>
         </nav>
       </div>
 
       <div className="flex items-center gap-4">
-        {/* Placeholder for future Actions like View Graph, Theme Toggle */}
+        <ThemeToggle />
       </div>
     </header>
   );
