@@ -9,7 +9,6 @@ export default function SignupPage() {
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [adminToken, setAdminToken] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -21,13 +20,10 @@ export default function SignupPage() {
     setSuccess(false);
 
     try {
-      // NOTE: Update to your exact Django registration endpoint if it differs from "/api/register/"
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/register/`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/signup/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          // Providing the master token in headers to authenticate the signup request
-          "Authorization": `Token ${adminToken}`,
         },
         body: JSON.stringify({
           username,
@@ -37,7 +33,7 @@ export default function SignupPage() {
 
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData?.detail || errorData?.non_field_errors || "Registration failed. Check your token or details.");
+        throw new Error(errorData?.detail || errorData?.non_field_errors || "Registration failed. Check details.");
       }
 
       setSuccess(true);
@@ -63,7 +59,7 @@ export default function SignupPage() {
             Create an Account
           </h2>
           <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-2">
-            Register a new authorized user using a master token.
+            Register a new authorized user.
           </p>
         </div>
 
@@ -102,27 +98,6 @@ export default function SignupPage() {
                 required
                 className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100 focus:border-transparent transition-all text-sm text-zinc-900 dark:text-zinc-100"
                 placeholder="••••••••"
-              />
-            </div>
-            
-            <hr className="border-zinc-200 dark:border-zinc-800" />
-
-            <div>
-              <label 
-                htmlFor="adminToken" 
-                className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1"
-              >
-                Admin Authorization Token
-              </label>
-              <p className="text-xs text-zinc-500 mb-2">Required by backend to permit registration.</p>
-              <input
-                id="adminToken"
-                type="text"
-                value={adminToken}
-                onChange={(e) => setAdminToken(e.target.value)}
-                required
-                className="w-full px-3 py-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-300 dark:border-zinc-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 dark:focus:ring-zinc-100 focus:border-transparent transition-all text-sm font-mono text-zinc-900 dark:text-zinc-100"
-                placeholder="e.g. 9a1f3c8..."
               />
             </div>
           </div>
