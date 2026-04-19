@@ -1,26 +1,42 @@
-import { FileText, Search, Settings, Hash, Network, Lock } from "lucide-react";
+import { FileText, Search, Settings, Network, Lock, FolderTree } from "lucide-react";
 import Link from "next/link";
 import { SearchModal } from "./SearchModal";
-import { FolderGroup } from "./FolderGroup";
+import { FileTree, TreeNode } from "./FileTree";
 import { fetchAPI } from "@/lib/api";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
-async function getNotes() {
+async function getNotesTree(): Promise<TreeNode[] | null> {
   try {
-    const [prmRes, refRes, fltRes] = await Promise.all([
-      fetchAPI('/api/notes/?note_type=PRM'),
-      fetchAPI('/api/notes/?note_type=REF'),
-      fetchAPI('/api/notes/?note_type=FLT')
-    ]);
+    const res = await fetchAPI('/api/notes/tree/');
+    const flatNodes = Array.isArray(res) ? res : (res?.results || []);
     
-    return {
-      prm: Array.isArray(prmRes) ? prmRes : (prmRes?.results || []),
-      ref: Array.isArray(refRes) ? refRes : (refRes?.results || []),
-      flt: Array.isArray(fltRes) ? fltRes : (fltRes?.results || [])
-    };
+    // Create a map to O(1) look up nodes by their id
+    const nodeMap = new Map<number, TreeNode>();
+    flatNodes.forEach((n: any) => {
+      nodeMap.set(n.id, { ...n, children: [] });
+    });
+
+    const rootNodes: TreeNode[] = [];
+    
+    // Connect children to their parents directly
+    nodeMap.forEach(node => {
+      if (node.parent_note) {
+        const parent = nodeMap.get(node.parent_note);
+        if (parent) {
+          parent.children.push(node);
+        } else {
+          // Fallback if parent missing
+          rootNodes.push(node);
+        }
+      } else {
+        rootNodes.push(node);
+      }
+    });
+
+    return rootNodes;
   } catch (err) {
-    console.error("Sidebar note fetching failed - unauthorized or API down");
+    console.error("Sidebar tree fetching failed - unauthorized or API down");
     return null;
   }
 }
@@ -28,9 +44,9 @@ async function getNotes() {
 export default async function Sidebar() {
   const session = await getServerSession(authOptions);
   
-  let notes = null;
+  let treeNodes = null;
   if (session) {
-    notes = await getNotes();
+    treeNodes = await getNotesTree();
   }
 
   return (
@@ -67,11 +83,13 @@ export default async function Sidebar() {
         </div>
         
         {session ? (
-          notes ? (
-            <div className="px-2 space-y-1">
-              <FolderGroup title="Permanent Notes" notes={notes.prm} defaultOpen={true} />
-              <FolderGroup title="Reference Notes" notes={notes.ref} />
-              <FolderGroup title="Fleeting Notes" notes={notes.flt} />
+          treeNodes ? (
+            <div className="px-1 space-y-1">
+              <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2 px-3 flex items-center gap-2">
+                <FolderTree size={14} className="text-zinc-400" />
+                File Explorer
+              </h3>
+              <FileTree nodes={treeNodes} />
             </div>
           ) : (
             <div className="px-4 py-2 text-xs text-red-500 dark:text-red-400 italic">
