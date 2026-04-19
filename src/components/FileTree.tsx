@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 import clsx from "clsx";
 
 export interface TreeNode {
-  id: number;
+  id: number | string;
   title: string;
   slug: string;
   parent_note: number | null;
@@ -46,10 +46,10 @@ function FileTreeNode({ node, level }: { node: TreeNode; level: number }) {
     <li className="my-0.5">
       <div
         className={clsx(
-          "flex items-center gap-2 py-2 pr-3 text-sm rounded-lg transition-colors group",
+          "flex items-center gap-2 py-2 pr-3 text-sm rounded-lg transition-colors group cursor-pointer",
           isActive
-            ? "bg-zinc-200/60 dark:bg-zinc-800/80 text-zinc-950 dark:text-zinc-100 font-medium"
-            : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-900 dark:hover:text-zinc-200"
+            ? "bg-purple-100/80 dark:bg-purple-500/20 text-purple-900 dark:text-purple-200 font-medium"
+            : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:text-purple-700 dark:hover:text-purple-300"
         )}
         style={{ paddingLeft: `${level * 0.75 + 0.3}rem` }}
       >
@@ -58,9 +58,15 @@ function FileTreeNode({ node, level }: { node: TreeNode; level: number }) {
           <button
             onClick={(e) => {
               e.preventDefault();
+              e.stopPropagation();
               setIsOpen(!isOpen);
             }}
-            className="p-1 -ml-1 rounded-sm text-zinc-400 hover:bg-zinc-200/50 dark:hover:bg-zinc-800 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
+            className={clsx(
+              "p-1 -ml-1 rounded-sm transition-colors",
+              isActive 
+                ? "text-purple-700 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-500/30" 
+                : "text-zinc-400 hover:bg-zinc-200/50 dark:hover:bg-zinc-800 hover:text-purple-600 dark:hover:text-purple-300"
+            )}
           >
             {isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
           </button>
@@ -69,18 +75,31 @@ function FileTreeNode({ node, level }: { node: TreeNode; level: number }) {
         )}
         
         {/* Node Link */}
-        <Link href={href} className="flex-1 flex items-center gap-2.5 truncate">
-          {hasChildren ? (
-            isOpen ? (
-              <FolderOpen size={16} className="text-zinc-500 dark:text-zinc-400 flex-shrink-0" />
+        {!node.slug || hasChildren && node.slug === '' ? (
+          // Just a folder wrapper toggle instead of navigating
+          <div className="flex-1 flex items-center gap-2.5 truncate" onClick={() => setIsOpen(!isOpen)}>
+            {isOpen ? (
+              <FolderOpen size={16} className={isActive ? "text-purple-700 dark:text-purple-300" : "text-zinc-500 dark:text-zinc-400 group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors flex-shrink-0"} />
             ) : (
-              <Folder size={16} className="text-zinc-500 dark:text-zinc-400 flex-shrink-0" />
-            )
-          ) : (
-            <FileText size={16} className={clsx("flex-shrink-0", isActive ? "text-zinc-900 dark:text-zinc-100" : "text-zinc-400")} />
-          )}
-          <span className="truncate tracking-wide">{node.title || node.slug}</span>
-        </Link>
+              <Folder size={16} className={isActive ? "text-purple-700 dark:text-purple-300" : "text-zinc-500 dark:text-zinc-400 group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors flex-shrink-0"} />
+            )}
+            <span className="truncate tracking-wide">{node.title}</span>
+          </div>
+        ) : (
+          // Actual Note Link
+          <Link href={href} className="flex-1 flex items-center gap-2.5 truncate">
+            {hasChildren ? (
+              isOpen ? (
+                <FolderOpen size={16} className={isActive ? "text-purple-700 dark:text-purple-300" : "text-zinc-500 dark:text-zinc-400 group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors flex-shrink-0"} />
+              ) : (
+                <Folder size={16} className={isActive ? "text-purple-700 dark:text-purple-300" : "text-zinc-500 dark:text-zinc-400 group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors flex-shrink-0"} />
+              )
+            ) : (
+              <FileText size={16} className={clsx("flex-shrink-0 transition-colors", isActive ? "text-purple-700 dark:text-purple-300" : "text-zinc-400 group-hover:text-purple-600 dark:group-hover:text-purple-300")} />
+            )}
+            <span className="truncate tracking-wide">{node.title || node.slug}</span>
+          </Link>
+        )}
       </div>
       
       {/* Recursively render children */}

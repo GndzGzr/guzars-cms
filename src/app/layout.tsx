@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { Suspense } from "react";
 import Sidebar from "@/components/Sidebar";
+import { ResizableSidebar } from "@/components/ResizableSidebar";
+import { SidebarSkeleton } from "@/components/SidebarSkeleton";
 import TopNav from "@/components/TopNav";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/components/AuthProvider";
+import { SidebarProvider } from "@/components/SidebarContext";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
@@ -44,9 +48,14 @@ export default async function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            {session ? (
+            <SidebarProvider>
+              {session ? (
               <div className="flex w-full h-full overflow-hidden">
-                <Sidebar />
+                <ResizableSidebar>
+                  <Suspense fallback={<SidebarSkeleton />}>
+                    <Sidebar />
+                  </Suspense>
+                </ResizableSidebar>
                 <main className="flex-grow flex flex-col h-full overflow-hidden relative">
                   <TopNav />
                   <div className="flex-grow overflow-y-auto w-full">
@@ -61,6 +70,7 @@ export default async function RootLayout({
                 </main>
               </div>
             )}
+            </SidebarProvider>
           </ThemeProvider>
         </AuthProvider>
       </body>

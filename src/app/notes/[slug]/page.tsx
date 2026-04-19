@@ -71,7 +71,7 @@ export default async function NotePage({ params }: { params: Promise<{ slug: str
             {note.note_type}
           </span>
           {note.tags.map((t) => (
-            <span key={t.slug} className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700">
+            <span key={t.slug} className="inline-flex items-center px-2.5 py-0.5 text-xs font-medium text-purple-600 dark:text-purple-400">
               #{t.name}
             </span>
           ))}

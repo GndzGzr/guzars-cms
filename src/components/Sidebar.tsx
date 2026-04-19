@@ -11,30 +11,72 @@ async function getNotesTree(): Promise<TreeNode[] | null> {
     const res = await fetchAPI('/api/notes/tree/');
     const flatNodes = Array.isArray(res) ? res : (res?.results || []);
     
-    // Create a map to O(1) look up nodes by their id
-    const nodeMap = new Map<number, TreeNode>();
-    flatNodes.forEach((n: any) => {
-      nodeMap.set(n.id, { ...n, children: [] });
-    });
-
     const rootNodes: TreeNode[] = [];
-    
-    // Connect children to their parents directly
-    nodeMap.forEach(node => {
-      if (node.parent_note) {
-        const parent = nodeMap.get(node.parent_note);
-        if (parent) {
-          parent.children.push(node);
-        } else {
-          // Fallback if parent missing
-          rootNodes.push(node);
-        }
-      } else {
-        rootNodes.push(node);
-      }
+    const pathMap = new Map<string, TreeNode>();
+
+    // Sort to handle root directories before deep nested nodes
+    flatNodes.sort((a: any, b: any) => {
+      const aPath = (a.file_path || '').split('/').length;
+      const bPath = (b.file_path || '').split('/').length;
+      return aPath - bPath;
     });
 
-    return rootNodes;
+    flatNodes.forEach((node: any) => {
+      const fullPath = node.file_path;
+      if (!fullPath || !fullPath.includes('/')) {
+         // Root level files
+         rootNodes.push({
+            id: node.id,
+            title: node.title || node.slug,
+            slug: node.slug,
+            parent_note: null,
+            children: []
+         });
+         return;
+      }
+      
+      const parts = fullPath.split('/');
+      const fileName = parts.pop(); // The final file
+      let currentParentList = rootNodes;
+      let currentPath = '';
+
+      // Build out necessary folder nodes
+      for (const dir of parts) {
+        currentPath = currentPath ? `${currentPath}/${dir}` : dir;
+        let folderNode = pathMap.get(currentPath);
+        if (!folderNode) {
+          folderNode = { 
+            id: String(`folder_${currentPath}`), 
+            title: dir, 
+            slug: '', 
+            parent_note: null, 
+            children: [] 
+          };
+          pathMap.set(currentPath, folderNode);
+          currentParentList.push(folderNode);
+        }
+        currentParentList = folderNode.children;
+      }
+
+      // Finally append the actual file under its folder
+      currentParentList.push({
+        id: node.id,
+        title: node.title || fileName,
+        slug: node.slug,
+        parent_note: null,
+        children: []
+      });
+    });
+
+    return [
+      {
+        id: "root-vault",
+        title: "Guzars Vault",
+        slug: "", // acts as a folder
+        parent_note: null,
+        children: rootNodes
+      }
+    ];
   } catch (err) {
     console.error("Sidebar tree fetching failed - unauthorized or API down");
     return null;
@@ -50,7 +92,7 @@ export default async function Sidebar() {
   }
 
   return (
-    <aside className="w-64 bg-zinc-50 dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800 flex flex-col h-full overflow-hidden transition-all duration-300">
+    <aside className="w-full flex flex-col h-full overflow-hidden">
       <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex flex-col gap-2">
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 rounded bg-black dark:bg-white flex items-center justify-center">
@@ -68,14 +110,14 @@ export default async function Sidebar() {
         <div className="px-2">
           <ul className="space-y-0.5 mb-4">
             <li>
-              <Link href="/notes" className="flex items-center gap-2 px-3 py-1.5 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-md transition-colors">
-                <FileText size={16} className="text-zinc-400" />
+              <Link href="/notes" className="flex items-center gap-2 px-3 py-1.5 text-zinc-700 dark:text-zinc-300 hover:text-purple-700 dark:hover:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-500/10 rounded-md transition-colors group">
+                <FileText size={16} className="text-zinc-400 group-hover:text-purple-500 transition-colors" />
                 All Notes
               </Link>
             </li>
             <li>
-              <Link href="/graph" className="flex items-center gap-2 px-3 py-1.5 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-md transition-colors">
-                <Network size={16} className="text-zinc-400" />
+              <Link href="/graph" className="flex items-center gap-2 px-3 py-1.5 text-zinc-700 dark:text-zinc-300 hover:text-purple-700 dark:hover:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-500/10 rounded-md transition-colors group">
+                <Network size={16} className="text-zinc-400 group-hover:text-purple-500 transition-colors" />
                 Graph View
               </Link>
             </li>
@@ -105,8 +147,8 @@ export default async function Sidebar() {
       </div>
 
       <div className="p-3 border-t border-zinc-200 dark:border-zinc-800">
-        <button className="flex items-center gap-2 w-full px-3 py-1.5 text-sm text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-md transition-colors">
-          <Settings size={16} />
+        <button className="flex items-center gap-2 w-full px-3 py-1.5 text-sm text-zinc-500 hover:text-purple-700 dark:hover:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-500/10 rounded-md transition-colors group">
+          <Settings size={16} className="group-hover:text-purple-500 transition-colors" />
           <span>Settings</span>
         </button>
       </div>

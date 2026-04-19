@@ -2,19 +2,18 @@ const https = require('https');
 const options = {
   hostname: 'guzars-api.vercel.app',
   port: 443,
-  path: '/api/notes/tree/',
+  path: '/api/notes/graph/',
   method: 'GET',
   headers: {
     'Authorization': 'Token 14df91e1f3deac6b54b2452342402942792bb3e9'
   }
 };
+
 const req = https.request(options, res => {
   let data = '';
   res.on('data', d => { data += d; });
   res.on('end', () => {
-    let parsed = JSON.parse(data);
-    let items = Array.isArray(parsed) ? parsed : (parsed.results || []);
-    console.log(items.slice(0, 3));
+    console.log(data);
   });
 });
 req.end();

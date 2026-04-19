@@ -7,11 +7,9 @@ export const metadata = {
 };
 
 export default async function GraphPage() {
-  let notes = [];
+  let graphData = { nodes: [], links: [] };
   try {
-    const data = await fetchAPI('/notes/');
-    // If paginated response, handle inner results. Limit fields if API allows?
-    notes = data.results || data;
+    graphData = await fetchAPI('/api/notes/graph/');
   } catch (e: any) {
     console.error("Graph fetch failed:", e.message);
   }
@@ -23,7 +21,7 @@ export default async function GraphPage() {
            Knowledge Graph
          </h1>
       </div>
-      <NoteGraph notes={notes} />
+      <NoteGraph graphData={graphData} />
     </div>
   );
 }

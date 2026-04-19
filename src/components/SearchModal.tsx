@@ -29,9 +29,15 @@ export function SearchModal() {
   useEffect(() => {
     if (open && notes.length === 0) {
       setLoading(true);
-      fetchAPI('/notes/')
+      fetch('/api/local-search')
+        .then(res => res.json())
         .then(data => {
-            setNotes(data.results || data);
+            const results = data.results || data;
+            if (Array.isArray(results)) {
+                setNotes(results);
+            } else {
+                setNotes([]);
+            }
             setLoading(false);
         })
         .catch(() => setLoading(false));
@@ -73,6 +79,7 @@ export function SearchModal() {
             {notes.map((note) => (
               <Command.Item
                 key={note.id}
+                value={note.title}
                 onSelect={() => {
                   setOpen(false);
                   router.push(`/notes/${note.slug}`);

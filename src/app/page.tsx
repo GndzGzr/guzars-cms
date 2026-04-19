@@ -14,7 +14,7 @@ export default async function Home() {
               <Lock className="text-zinc-600 dark:text-zinc-400" size={32} />
            </div>
            <h1 className="text-4xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-50 mb-4">
-             Guzars Digital Garden
+             Guzars Vault
            </h1>
            <p className="text-lg text-zinc-600 dark:text-zinc-400 mb-8">
              This is a private, headless CMS representing a synced Obsidian vault. You must be an authorized admin to view the internal graph and permanent notes.
@@ -35,7 +35,7 @@ export default async function Home() {
         </h1>
         <div className="flex gap-2">
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200">
-            Digital Garden
+            Guzars Vault
           </span>
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
             Superuser
