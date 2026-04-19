@@ -14,7 +14,7 @@ export function AuthButton() {
   if (session) {
     return (
       <button
-        onClick={() => signOut()}
+        onClick={() => signOut({ callbackUrl: "/" })}
         className="flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
       >
         <span className="hidden sm:inline">Sign Out</span>
