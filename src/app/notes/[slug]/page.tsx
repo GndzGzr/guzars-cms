@@ -7,7 +7,7 @@ import { notFound } from 'next/navigation';
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   try {
     const slug = (await params).slug;
-    const note: Note = await fetchAPI(`/notes/${slug}/`);
+    const note: Note = await fetchAPI(`/api/notes/${slug}/`);
     return { title: `${note.title} | Guzars CMS` };
   } catch {
     return { title: 'Note Not Found' };
@@ -18,7 +18,7 @@ export default async function NotePage({ params }: { params: Promise<{ slug: str
   let note: Note;
   try {
     const slug = (await params).slug;
-    note = await fetchAPI(`/notes/${slug}/`);
+    note = await fetchAPI(`/api/notes/${slug}/`);
   } catch (error) {
     notFound();
   }
