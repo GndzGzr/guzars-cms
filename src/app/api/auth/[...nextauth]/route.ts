@@ -36,7 +36,7 @@ export const authOptions = {
         
         try {
           // Send login request to Django Backend 
-          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/api-token-auth/`, {
+          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/token/`, {
             method: 'POST',
             body: JSON.stringify({
               username: credentials.username,
@@ -47,11 +47,11 @@ export const authOptions = {
           
           const data = await res.json();
           
-          if (res.ok && data.token) {
+          if (res.ok && (data.token || data.access || data.auth_token)) {
             return {
               id: "1", // Django might return user ID, mock or use if available
               username: credentials.username,
-              token: data.token,
+              token: data.token || data.access || data.auth_token,
             };
           }
           return null;
