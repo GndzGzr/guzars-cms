@@ -5,6 +5,8 @@ import Sidebar from "@/components/Sidebar";
 import TopNav from "@/components/TopNav";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/components/AuthProvider";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,11 +23,13 @@ export const metadata: Metadata = {
   description: "A minimal, Vercel/Obsidian styled personal CMS",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await getServerSession(authOptions);
+
   return (
     <html
       lang="en"
@@ -40,15 +44,23 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <div className="flex w-full h-full overflow-hidden">
-              <Sidebar />
-              <main className="flex-grow flex flex-col h-full overflow-hidden relative">
-                <TopNav />
-                <div className="flex-grow overflow-y-auto w-full">
+            {session ? (
+              <div className="flex w-full h-full overflow-hidden">
+                <Sidebar />
+                <main className="flex-grow flex flex-col h-full overflow-hidden relative">
+                  <TopNav />
+                  <div className="flex-grow overflow-y-auto w-full">
+                    {children}
+                  </div>
+                </main>
+              </div>
+            ) : (
+              <div className="flex w-full h-full overflow-hidden">
+                <main className="flex-grow flex flex-col h-full overflow-y-auto">
                   {children}
-                </div>
-              </main>
-            </div>
+                </main>
+              </div>
+            )}
           </ThemeProvider>
         </AuthProvider>
       </body>
