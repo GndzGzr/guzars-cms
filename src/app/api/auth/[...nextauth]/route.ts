@@ -36,7 +36,7 @@ export const authOptions = {
         
         try {
           // Send login request to Django Backend 
-          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/token/`, {
+          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/token/`, {
             method: 'POST',
             body: JSON.stringify({
               username: credentials.username,
